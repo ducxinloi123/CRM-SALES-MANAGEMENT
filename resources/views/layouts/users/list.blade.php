@@ -3,8 +3,6 @@
 
 <div class="container-fluid mt-5">
     <h2 class="mb-4">Danh sách tài khoản</h2>
-    
-    <!-- ĐÃ XÓA KHỐI #custom-toolbar-items ẨN Ở ĐÂY -->
 
     <div class="table-responsive">
         <table class="table table-bordered table-striped text-nowrap" id="users-table">
@@ -38,7 +36,8 @@
 
 <script type="text/javascript">
 $(document).ready(function () {
-    $('#users-table').DataTable({
+   
+    let table = $('#users-table').DataTable({
         processing: true,
         serverSide: true,
         responsive: true,
@@ -59,7 +58,6 @@ $(document).ready(function () {
         initComplete: function () {
             const $toolbar = $('.dt-toolbar', this.api().table().container());
 
-            // 1. Tạo giao diện các ô Select trống (Gắn trực tiếp bằng JS)
             if(!$toolbar.children().length){
                 $toolbar.html(`
                     <select id="filter-status" class="form-select form-select-sm ms-2" style="width: 130px;">
@@ -78,38 +76,43 @@ $(document).ready(function () {
                 `);
             }
 
-            // 2. Gọi AJAX để lấy dữ liệu từ Server và nhét vào các ô Select
             $.getJSON("{{ route('users.filter') }}").done(res => {
-                // Đổ data Trạng thái
                 if(res.status_f) {
                     res.status_f.forEach(item => {
                         $('#filter-status').append(new Option(item.text, item.id));
                     });
                 }
                 
-                // Đổ data Bộ phận
                 if(res.part_f) {
                     res.part_f.forEach(item => {
                         $('#filter-part').append(new Option(item.text, item.id));
                     });
                 }
 
-                // Đổ data Đội nhóm
                 if(res.team_f) {
                     res.team_f.forEach(item => {
                         $('#filter-team').append(new Option(item.text, item.id));
                     });
                 }
 
-                // Đổ data Loại tài khoản
                 if(res.role_f) {
                     res.role_f.forEach(item => {
                         $('#filter-account').append(new Option(item.text, item.id));
                     });
                 }
             });
+           
         },
-        ajax: "{{ route('users.data') }}",
+        ajax:{
+            url:  "{{ route('users.data') }}",
+            data: function (d){
+                d.part_id = $('#filter-part').val()|| '';
+                d.team_id = $('#filter-team').val()|| '';
+                d.status = $('#filter-status').val()|| '';
+                d.type_account_id = $('#filter-account').val() || '';
+            }
+           
+        },
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
             {data: 'name', name: 'name'},
@@ -135,6 +138,23 @@ $(document).ready(function () {
             lengthMenu: 'Hiển thị _MENU_ user mỗi trang',
         }
     });
+    
+    // Sự kiện khi thay đổi các thẻ Select
+    $(document).on('change', '#filter-account, #filter-part, #filter-status, #filter-team', function() {
+        table.ajax.reload(null, false);
+    });
+
+    // Sự kiện khi bấm nút Xóa lọc
+    $(document).on('click', '#btn-clear-filter', function() {
+        $('#filter-status').val('');
+        $('#filter-part').val('');
+        $('#filter-team').val('');
+        $('#filter-account').val('');
+        
+        table.ajax.reload();
+    });
+    
 });
 </script>
+
 @include('layouts/parts/footer')

@@ -33,7 +33,21 @@ class UserController extends Controller
     {
         if ($request->ajax()) {
             // Kéo dữ liệu bảng User và các bảng liên kết
-            $data = User::with(['part', 'position', 'team', 'typeAccount'])->select('users.*');
+            $data = User::with(['part', 'position', 'team', 'typeAccount']);
+            $data -> orderByDesc('created_at');
+
+            if($request -> filled('part_id')){
+                $data ->where('part_id', $request-> part_id);
+            }
+             if($request -> filled('team_id')){
+                $data ->where('team_id', $request-> team_id);
+            }
+             if($request -> filled('status')){
+                $data ->where('status', $request-> status);
+            }
+             if($request -> filled('type_account_id')){
+                $data ->where('type_account_id', $request-> type_account_id);
+            }
 
             return DataTables::of($data)
                 ->addIndexColumn()
