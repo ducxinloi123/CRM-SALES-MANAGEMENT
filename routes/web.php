@@ -17,9 +17,12 @@ Route::middleware('auth')->group(function () {
 });
 Route::get('/account', [UserController::class, 'index'])->name('account')->middleware('auth');
 
-require __DIR__ . '/auth.php';
 Route::prefix('users')->name('users.')->group(function () {
     Route::get('/list', [UserController::class, 'index'])->name('list');
     Route::get('/data', [UserController::class, 'getUsers'])->name('data');
     Route::get('/filter',[UserController::class,'getFiltes'])->name('filter');
+    Route::get('/create',[UserController::class,'create'])->name('create');
+    Route::post('/create',[UserController::class,'store'])->name('store');
+
 })->middleware('auth');
+require __DIR__ . '/auth.php';

@@ -5,15 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Part;
+use App\Models\Position;
 use App\Models\Team;
 use App\Models\TypeAccount;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
-    /**
-     * Render the table view.
-     */
     public function index()
     {
         return view('layouts.users.list');
@@ -32,7 +30,6 @@ class UserController extends Controller
     public function getUsers(Request $request)
     {
         if ($request->ajax()) {
-            // Kéo dữ liệu bảng User và các bảng liên kết
             $data = User::with(['part', 'position', 'team', 'typeAccount']);
             $data -> orderByDesc('created_at');
 
@@ -51,11 +48,9 @@ class UserController extends Controller
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                // Xử lý hiển thị giới tính
                 ->editColumn('sex', function ($row) {
                     return $row->sex == 0 ? 'Nam' : 'Nữ';
                 })
-                // Móc tên từ các bảng quan hệ (xử lý lỗi rỗng)
                 ->addColumn('part_name', function ($row) {
                     return $row->part ? $row->part->name : '';
                 })
@@ -80,5 +75,42 @@ class UserController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
+    }
+
+    public function FormOption(){
+        return [
+        'part' => Part::select('id','name as text')->orderBy('name')->get(),
+        'position' => Position::seclect('id', 'name as text')->orderBy('name')->get(),
+        'team' => Team::seclect('id', 'name as text')->orderBy('name')->get(),
+        'type_account'=>TypeAccount::seclect('id','name as text')->orderBy('name')->get(),
+        'gender'=> [
+            ['id' => 0 ,'text' => 'Nam'],
+            ['id'=> 1, 'text' => 'Nữ']
+        ],
+        'type_work' => [
+            ['id'=> 0 ,'text'=>'Partime'],
+            ['id'=>1,'text'=>'Fulltime']
+        ],
+        'status' => [
+            ['id'=> 0,'text' => 'Đang Làm'],
+            ['id'=> 1,'text'=> 'Đã Nghỉ']
+        ]
+        ];
+    }
+    public function create(){
+        $option = $this ->FormOption();
+        return view('layouts.users.add',[
+            'option'=> $option,
+            'mode' => 'create',
+            'user' => new User(),
+        ]);
+    }
+    public function store(User $user){
+        $option = $this ->FormOption();
+        return view('layouts.users.add',[
+            'option'=> $option,
+            'mode' => 'create',
+            'user' => $user,
+        ]);
     }
 }

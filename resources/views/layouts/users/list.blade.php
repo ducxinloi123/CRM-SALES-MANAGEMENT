@@ -2,8 +2,12 @@
 @include('layouts/parts/sidebar')  
 
 <div class="container-fluid mt-5">
+<div class="card-header d-flex justify-content-between align-items-center">
     <h2 class="mb-4">Danh sách tài khoản</h2>
+    <a href="{{ route('users.create') }}" class="btn btn-success ms-auto" style="margin-right: 10px;" id="btn open-create">Thêm mới nhân sự</a>
+    <button type="button" class="btn btn-primary" id="btn-export-excel">Xuất Excel</button>
 
+</div>
     <div class="table-responsive">
         <table class="table table-bordered table-striped text-nowrap" id="users-table">
             <thead>
