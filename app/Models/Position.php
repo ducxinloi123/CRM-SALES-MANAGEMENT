@@ -12,6 +12,6 @@ class Position extends Model
         
     ];
     public function users(){
-        return $this->hasmany(User::class ,'position_id');
+        return $this->hasMany(User::class ,'position_id');
     }
 }

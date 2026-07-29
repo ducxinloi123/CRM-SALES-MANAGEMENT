@@ -80,9 +80,9 @@ class UserController extends Controller
     public function FormOption(){
         return [
         'part' => Part::select('id','name as text')->orderBy('name')->get(),
-        'position' => Position::seclect('id', 'name as text')->orderBy('name')->get(),
-        'team' => Team::seclect('id', 'name as text')->orderBy('name')->get(),
-        'type_account'=>TypeAccount::seclect('id','name as text')->orderBy('name')->get(),
+        'position' => Position::query()->select('id','name as text')->orderBy('name')->get(),
+        'team' => Team::query()->select('id', 'name as text')->orderBy('name')->get(),
+        'type_account'=>TypeAccount::query()->select('id','name as text')->orderBy('name')->get(),
         'gender'=> [
             ['id' => 0 ,'text' => 'Nam'],
             ['id'=> 1, 'text' => 'Nữ']
@@ -105,7 +105,10 @@ class UserController extends Controller
             'user' => new User(),
         ]);
     }
-    public function store(User $user){
+    public function store(){
+       
+    }
+    public function edit(User $user){
         $option = $this ->FormOption();
         return view('layouts.users.add',[
             'option'=> $option,
