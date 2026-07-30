@@ -392,13 +392,7 @@
                 </li>
               </ul>
             </li>   
-          <!--end::Sidebar Menu-->
         </nav>
       </div>
-      <!--end::Sidebar Wrapper-->
     </aside>
-    <!--end::Sidebar-->
-    <!--begin::App Main-->
-
-    <!--end::Script-->
 </body>
