@@ -8,6 +8,7 @@ use App\Models\Part;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TypeAccount;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -17,33 +18,34 @@ class UserController extends Controller
         return view('layouts.users.list');
     }
 
-    public function getFiltes(){
+    public function getFiltes()
+    {
         $status_f = collect([
-            ['id' => 1 , 'text' => 'Đã nghĩ'],
-            ['id' => 0 , 'text'=> 'Đang làm']
+            ['id' => 1, 'text' => 'Đã nghĩ'],
+            ['id' => 0, 'text' => 'Đang làm']
         ]);
-        $part_f = Part::select('id','name as text')-> orderBy('name')->get();
-        $team_f = Team::select('id' , 'name as text')-> orderBy('name')->get();
-        $role_f = TypeAccount::select('id','name as text')-> orderBy('name')->get();
+        $part_f = Part::select('id', 'name as text')->orderBy('name')->get();
+        $team_f = Team::select('id', 'name as text')->orderBy('name')->get();
+        $role_f = TypeAccount::select('id', 'name as text')->orderBy('name')->get();
         return compact('status_f', 'part_f', 'team_f', 'role_f');
     }
     public function getUsers(Request $request)
     {
         if ($request->ajax()) {
             $data = User::with(['part', 'position', 'team', 'typeAccount']);
-            $data -> orderByDesc('created_at');
+            $data->orderByDesc('created_at');
 
-            if($request -> filled('part_id')){
-                $data ->where('part_id', $request-> part_id);
+            if ($request->filled('part_id')) {
+                $data->where('part_id', $request->part_id);
             }
-             if($request -> filled('team_id')){
-                $data ->where('team_id', $request-> team_id);
+            if ($request->filled('team_id')) {
+                $data->where('team_id', $request->team_id);
             }
-             if($request -> filled('status')){
-                $data ->where('status', $request-> status);
+            if ($request->filled('status')) {
+                $data->where('status', $request->status);
             }
-             if($request -> filled('type_account_id')){
-                $data ->where('type_account_id', $request-> type_account_id);
+            if ($request->filled('type_account_id')) {
+                $data->where('type_account_id', $request->type_account_id);
             }
 
             return DataTables::of($data)
@@ -64,8 +66,8 @@ class UserController extends Controller
                     return $row->typeAccount ? $row->typeAccount->name : '';
                 })
                 ->editColumn('status', function ($row) {
-                    return $row->status == 0 
-                        ? 'Đang làm ' 
+                    return $row->status == 0
+                        ? 'Đang làm '
                         : 'Đã nghỉ ';
                 })
                 ->addColumn('action', function ($row) {
@@ -77,41 +79,79 @@ class UserController extends Controller
         }
     }
 
-    public function FormOption(){
+    public function FormOption()
+    {
         return [
-        'part' => Part::select('id','name as text')->orderBy('name')->get(),
-        'position' => Position::query()->select('id','name as text')->orderBy('name')->get(),
-        'team' => Team::query()->select('id', 'name as text')->orderBy('name')->get(),
-        'type_account'=>TypeAccount::query()->select('id','name as text')->orderBy('name')->get(),
-        'gender'=> [
-            ['id' => 0 ,'text' => 'Nam'],
-            ['id'=> 1, 'text' => 'Nữ']
-        ],
-        'type_work' => [
-            ['id'=> 0 ,'text'=>'Partime'],
-            ['id'=>1,'text'=>'Fulltime']
-        ],
-        'status' => [
-            ['id'=> 0,'text' => 'Đang Làm'],
-            ['id'=> 1,'text'=> 'Đã Nghỉ']
-        ]
+            'part' => Part::select('id', 'name as text')->orderBy('name')->get(),
+            'position' => Position::query()->select('id', 'name as text')->orderBy('name')->get(),
+            'team' => Team::query()->select('id', 'name as text')->orderBy('name')->get(),
+            'type_account' => TypeAccount::query()->select('id', 'name as text')->orderBy('name')->get(),
+            'gender' => [
+                ['id' => 0, 'text' => 'Nam'],
+                ['id' => 1, 'text' => 'Nữ']
+            ],
+            'type_work' => [
+                ['id' => 0, 'text' => 'Partime'],
+                ['id' => 1, 'text' => 'Fulltime']
+            ],
+            'status' => [
+                ['id' => 0, 'text' => 'Đang Làm'],
+                ['id' => 1, 'text' => 'Đã Nghỉ']
+            ]
         ];
     }
-    public function create(){
-        $option = $this ->FormOption();
-        return view('layouts.users.add',[
-            'option'=> $option,
+    public function create()
+    {
+        $option = $this->FormOption();
+        return view('layouts.users.add', [
+            'option' => $option,
             'mode' => 'create',
             'user' => new User(),
         ]);
     }
-    public function store(){
-       
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            Rule::unique('user', 'email'),
+            'password' => ['required', 'string', 'min:6'],
+            'birthday' => ['date', 'nullable'],
+            'gender' => ['required'],
+            'part' => ['integer', 'nullable', 'exists:part,id'],
+            'position' => ['integer', 'nullable', 'exists:position,id'],
+            'type_work' => ['required'],
+            'team' => ['integer', 'nullable', 'exists:team,id'],
+            'phone' => ['required', 'string', 'max:255'],
+            'addres' => ['required', 'nullable', 'string', 'max:255'],
+            'status' => ['required'],
+            'start_day' => ['required', 'date'],
+            'end_day' => ['nullable', 'date', 'after_or_equal:start_day'],
+
+        ], [
+            'name.required' => 'Họ tên bắt buộc phải nhập',
+            'email.required' => 'Email bắt buộc phải nhập',
+            'email.email' => 'Email không đúng định dạng',
+            'email.unique' => 'Email đã tồn tại',
+            'password.required' => 'Mật khẩu bắt buộc phải nhập',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'gender.required' => 'Bạn phải chọn giới tính',
+            'start_day.required' => 'Ngày bắt đầu bắt buộc phải nhập',
+            'end_day.after_or_equal' => 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu',
+            'status.required' => 'Trạng thái là bắt buộc chọn',
+            'type_work.required' => 'Hình thức là bắt buộc chọn',
+            'phone.required' => 'Số điện thoại bắt buộc phải nhập',
+            'addres.required' => 'Địa chỉ bắt buộc phải nhập',
+
+
+
+        ]);
     }
-    public function edit(User $user){
-        $option = $this ->FormOption();
-        return view('layouts.users.add',[
-            'option'=> $option,
+    public function edit(User $user)
+    {
+        $option = $this->FormOption();
+        return view('layouts.users.add', [
+            'option' => $option,
             'mode' => 'create',
             'user' => $user,
         ]);
