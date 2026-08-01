@@ -72,8 +72,8 @@ class UserController extends Controller
                         : 'Đã nghỉ ';
                 })
                 ->addColumn('action', function ($row) {
-                    return '<div class = "btn btn-warning"><i class="fa-regular fa-pen-to-square"></i></div>
-                    <div class ="btn btn-danger btn-delete"><i class="fa-solid fa-delete-left"></i></div>';
+                    return '<a href="' .route('users.edit',$row -> id).'" class = "btn btn-warning"><i class="fa-regular fa-pen-to-square"></i></a>
+                    <a class ="btn btn-danger btn-delete"><i class="fa-solid fa-delete-left"></i></a>';
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -167,14 +167,14 @@ class UserController extends Controller
 
 return redirect()
     ->route('users.list')
-    ->with('message', 'Thêm mới tài khoản thành công');
+    ->with('success', 'Thêm mới tài khoản thành công');
     }
     public function edit(User $user)
     {
         $option = $this->FormOption();
-        return view('layouts.users.add', [
+        return view('layouts.users.edit', [
             'option' => $option,
-            'mode' => 'create',
+            'mode' => 'update',
             'user' => $user,
         ]);
     }
