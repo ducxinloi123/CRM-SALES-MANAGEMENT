@@ -2,6 +2,12 @@
 @include('layouts/parts/sidebar')  
 <div class="container-fluid" style="min height: 100vh ; margin-top:20px">
     <h1>Thêm mới nhân sự</h1>
+    @if (session('message')){
+        <div class="alert alert-success">
+            {{ session('message') }}
+        </div>
+    }
+    @endif
     <form action="{{ route('users.create') }}" method="post">
         @csrf
         @include('layouts.users.form')

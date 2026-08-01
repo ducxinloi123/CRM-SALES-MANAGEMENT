@@ -8,6 +8,7 @@ use App\Models\Part;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TypeAccount;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -86,7 +87,7 @@ class UserController extends Controller
             'position' => Position::query()->select('id', 'name as text')->orderBy('name')->get(),
             'team' => Team::query()->select('id', 'name as text')->orderBy('name')->get(),
             'type_account' => TypeAccount::query()->select('id', 'name as text')->orderBy('name')->get(),
-            'gender' => [
+            'sex' => [
                 ['id' => 0, 'text' => 'Nam'],
                 ['id' => 1, 'text' => 'Nữ']
             ],
@@ -114,17 +115,18 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            Rule::unique('user', 'email'),
+            Rule::unique('users', 'email'),
             'password' => ['required', 'string', 'min:6'],
             'birthday' => ['date', 'nullable'],
-            'gender' => ['required'],
-            'part' => ['integer', 'nullable', 'exists:part,id'],
-            'position' => ['integer', 'nullable', 'exists:position,id'],
+            'sex' => ['required'],
+            'part' => ['integer', 'nullable', 'exists:parts,id'],
+            'position' => ['integer', 'nullable', 'exists:positions,id'],
             'type_work' => ['required'],
-            'team' => ['integer', 'nullable', 'exists:team,id'],
+            'team' => ['integer', 'nullable', 'exists:teams,id'],
             'phone' => ['required', 'string', 'max:255'],
-            'addres' => ['required', 'nullable', 'string', 'max:255'],
+            'address' => ['required', 'nullable', 'string', 'max:255'],
             'status' => ['required'],
+            'type_account' => ['required','exists:type_accounts,id'],
             'start_day' => ['required', 'date'],
             'end_day' => ['nullable', 'date', 'after_or_equal:start_day'],
 
@@ -135,17 +137,37 @@ class UserController extends Controller
             'email.unique' => 'Email đã tồn tại',
             'password.required' => 'Mật khẩu bắt buộc phải nhập',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
-            'gender.required' => 'Bạn phải chọn giới tính',
+            'sex.required' => 'Bạn phải chọn giới tính',
             'start_day.required' => 'Ngày bắt đầu bắt buộc phải nhập',
             'end_day.after_or_equal' => 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu',
             'status.required' => 'Trạng thái là bắt buộc chọn',
             'type_work.required' => 'Hình thức là bắt buộc chọn',
             'phone.required' => 'Số điện thoại bắt buộc phải nhập',
-            'addres.required' => 'Địa chỉ bắt buộc phải nhập',
-
-
+            'address.required' => 'Địa chỉ bắt buộc phải nhập',
+            'type_account.required' => 'Loại tài khoản bắt buộc phải nhập',
 
         ]);
+       User::create([
+    'name' => $validated['name'],
+    'email' => $validated['email'],
+    'address' => $validated['address'],
+    'phone' => $validated['phone'],
+    'start_day' => $validated['start_day'],
+    'end_day' => $validated['end_day'] ?? null,
+    'password' => Hash::make($validated['password']),
+    'birthday' => $validated['birthday'] ?? null,
+    'sex' => $validated['sex'],
+    'part_id' => $validated['part'] ?? null,
+    'team_id' => $validated['team'] ?? null,
+    'position_id' => $validated['position'] ?? null,
+    'type_work' => $validated['type_work'],
+    'status' => $validated['status'],
+    'type_account_id' => $validated['type_account'] ?? null,
+]);
+
+return redirect()
+    ->route('users.list')
+    ->with('message', 'Thêm mới tài khoản thành công');
     }
     public function edit(User $user)
     {
