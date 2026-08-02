@@ -72,8 +72,17 @@ class UserController extends Controller
                         : 'Đã nghỉ ';
                 })
                 ->addColumn('action', function ($row) {
-                    return '<a href="' .route('users.edit',$row -> id).'" class = "btn btn-warning"><i class="fa-regular fa-pen-to-square"></i></a>
-                    <a class ="btn btn-danger btn-delete"><i class="fa-solid fa-delete-left"></i></a>';
+                    return '
+                    <a href="' . route('users.edit', $row->id) .
+                        '" class = "btn btn-warning"><i class="fa-regular fa-pen-to-square"></i>
+                    </a>
+                    <form action="' . route('users.delete', $row->id) . '" method="POST">
+                     ' . csrf_field() . '
+                     ' . method_field('DELETE') . '
+                 <button class="btn btn-danger btn-delete">
+                 <i class="fa-solid fa-delete-left"></i>
+                 </button>
+                </form>';
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -126,7 +135,7 @@ class UserController extends Controller
             'phone' => ['required', 'string', 'max:255'],
             'address' => ['required', 'nullable', 'string', 'max:255'],
             'status' => ['required'],
-            'type_account' => ['required','exists:type_accounts,id'],
+            'type_account' => ['required', 'exists:type_accounts,id'],
             'start_day' => ['required', 'date'],
             'end_day' => ['nullable', 'date', 'after_or_equal:start_day'],
 
@@ -147,27 +156,27 @@ class UserController extends Controller
             'type_account.required' => 'Loại tài khoản bắt buộc phải nhập',
 
         ]);
-       User::create([
-    'name' => $validated['name'],
-    'email' => $validated['email'],
-    'address' => $validated['address'],
-    'phone' => $validated['phone'],
-    'start_day' => $validated['start_day'],
-    'end_day' => $validated['end_day'] ?? null,
-    'password' => Hash::make($validated['password']),
-    'birthday' => $validated['birthday'] ?? null,
-    'sex' => $validated['sex'],
-    'part_id' => $validated['part'] ?? null,
-    'team_id' => $validated['team'] ?? null,
-    'position_id' => $validated['position'] ?? null,
-    'type_work' => $validated['type_work'],
-    'status' => $validated['status'],
-    'type_account_id' => $validated['type_account'] ?? null,
-]);
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'address' => $validated['address'],
+            'phone' => $validated['phone'],
+            'start_day' => $validated['start_day'],
+            'end_day' => $validated['end_day'] ?? null,
+            'password' => Hash::make($validated['password']),
+            'birthday' => $validated['birthday'] ?? null,
+            'sex' => $validated['sex'],
+            'part_id' => $validated['part'] ?? null,
+            'team_id' => $validated['team'] ?? null,
+            'position_id' => $validated['position'] ?? null,
+            'type_work' => $validated['type_work'],
+            'status' => $validated['status'],
+            'type_account_id' => $validated['type_account'] ?? null,
+        ]);
 
-return redirect()
-    ->route('users.list')
-    ->with('success', 'Thêm mới tài khoản thành công');
+        return redirect()
+            ->route('users.list')
+            ->with('success', 'Thêm mới tài khoản thành công');
     }
     public function edit(User $user)
     {
@@ -178,131 +187,138 @@ return redirect()
             'user' => $user,
         ]);
     }
-   public function update(Request $request, User $user)
-{
-    $validated = $request->validate([
-        'name' => [
-            'required',
-            'string',
-            'max:255'
-        ],
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255'
+            ],
 
-        'email' => [
-            'required',
-            'email',
-            'max:255',
-            Rule::unique('users', 'email')->ignore($user->id)
-        ],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id)
+            ],
 
-        'password' => [
-            'nullable',
-            'string',
-            'min:6'
-        ],
+            'password' => [
+                'nullable',
+                'string',
+                'min:6'
+            ],
 
-        'birthday' => [
-            'nullable',
-            'date'
-        ],
+            'birthday' => [
+                'nullable',
+                'date'
+            ],
 
-        'sex' => [
-            'required'
-        ],
+            'sex' => [
+                'required'
+            ],
 
-        'part' => [
-            'nullable',
-            'integer',
-            'exists:parts,id'
-        ],
+            'part' => [
+                'nullable',
+                'integer',
+                'exists:parts,id'
+            ],
 
-        'position' => [
-            'nullable',
-            'integer',
-            'exists:positions,id'
-        ],
+            'position' => [
+                'nullable',
+                'integer',
+                'exists:positions,id'
+            ],
 
-        'type_work' => [
-            'required'
-        ],
+            'type_work' => [
+                'required'
+            ],
 
-        'team' => [
-            'nullable',
-            'integer',
-            'exists:teams,id'
-        ],
+            'team' => [
+                'nullable',
+                'integer',
+                'exists:teams,id'
+            ],
 
-        'phone' => [
-            'required',
-            'string',
-            'max:255'
-        ],
+            'phone' => [
+                'required',
+                'string',
+                'max:255'
+            ],
 
-        'address' => [
-            'required',
-            'string',
-            'max:255'
-        ],
+            'address' => [
+                'required',
+                'string',
+                'max:255'
+            ],
 
-        'status' => [
-            'required'
-        ],
+            'status' => [
+                'required'
+            ],
 
-        'type_account' => [
-            'required',
-            'integer',
-            'exists:type_accounts,id'
-        ],
+            'type_account' => [
+                'required',
+                'integer',
+                'exists:type_accounts,id'
+            ],
 
-        'start_day' => [
-            'nullable',
-            'date'
-        ],
+            'start_day' => [
+                'nullable',
+                'date'
+            ],
 
-        'end_day' => [
-            'nullable',
-            'date',
-            'after_or_equal:start_day'
-        ],
+            'end_day' => [
+                'nullable',
+                'date',
+                'after_or_equal:start_day'
+            ],
 
-    ], [
-        'name.required' => 'Họ tên bắt buộc phải nhập',
-        'email.required' => 'Email bắt buộc phải nhập',
-        'email.email' => 'Email không đúng định dạng',
-        'email.unique' => 'Email đã tồn tại',
-        'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
-        'sex.required' => 'Bạn phải chọn giới tính',
-        'status.required' => 'Trạng thái bắt buộc phải chọn',
-        'type_work.required' => 'Hình thức bắt buộc phải chọn',
-        'phone.required' => 'Số điện thoại bắt buộc phải nhập',
-        'address.required' => 'Địa chỉ bắt buộc phải nhập',
-        'type_account.required' => 'Loại tài khoản bắt buộc phải chọn',
-    ]);
+        ], [
+            'name.required' => 'Họ tên bắt buộc phải nhập',
+            'email.required' => 'Email bắt buộc phải nhập',
+            'email.email' => 'Email không đúng định dạng',
+            'email.unique' => 'Email đã tồn tại',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'sex.required' => 'Bạn phải chọn giới tính',
+            'status.required' => 'Trạng thái bắt buộc phải chọn',
+            'type_work.required' => 'Hình thức bắt buộc phải chọn',
+            'phone.required' => 'Số điện thoại bắt buộc phải nhập',
+            'address.required' => 'Địa chỉ bắt buộc phải nhập',
+            'type_account.required' => 'Loại tài khoản bắt buộc phải chọn',
+        ]);
 
-    $dataupdate = [
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'address' => $validated['address'],
-        'phone' => $validated['phone'],
-        'start_day' => $validated['start_day'] ?? null,
-        'end_day' => $validated['end_day'] ?? null,
-        'birthday' => $validated['birthday'] ?? null,
-        'sex' => $validated['sex'],
-        'part_id' => $validated['part'] ?? null,
-        'team_id' => $validated['team'] ?? null,
-        'position_id' => $validated['position'] ?? null,
-        'type_work' => $validated['type_work'],
-        'status' => $validated['status'],
-        'type_account_id' => $validated['type_account'],
-    ];
+        $dataupdate = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'address' => $validated['address'],
+            'phone' => $validated['phone'],
+            'start_day' => $validated['start_day'] ?? null,
+            'end_day' => $validated['end_day'] ?? null,
+            'birthday' => $validated['birthday'] ?? null,
+            'sex' => $validated['sex'],
+            'part_id' => $validated['part'] ?? null,
+            'team_id' => $validated['team'] ?? null,
+            'position_id' => $validated['position'] ?? null,
+            'type_work' => $validated['type_work'],
+            'status' => $validated['status'],
+            'type_account_id' => $validated['type_account'],
+        ];
 
-    if (!empty($validated['password'])) {
-        $dataupdate['password'] = Hash::make($validated['password']);
+        if (!empty($validated['password'])) {
+            $dataupdate['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($dataupdate);
+
+        return redirect()
+            ->route('users.list')
+            ->with('success', 'Chỉnh sửa tài khoản thành công');
     }
-
-    $user->update($dataupdate);
-
-    return redirect()
+    public function destroy(User $user)
+    {
+        $user -> delete();
+        return redirect() 
         ->route('users.list')
-        ->with('success', 'Chỉnh sửa tài khoản thành công');
-}
+        ->with( 'success' ,'Xóa tài khoản thành công');
+    }
 }

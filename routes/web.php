@@ -25,5 +25,6 @@ Route::prefix('users')->name('users.')->group(function () {
     Route::post('/create',[UserController::class,'store'])->name('store');
     Route::get('/update/{user}',[UserController::class,'edit'])->name('edit');
     Route::post('/update/{user}',[UserController::class,'update'])->name('update');
+    Route::delete('/delete/{user}',[UserController::class,'destroy'])->name('delete');
 })->middleware('auth');
 require __DIR__ . '/auth.php';
