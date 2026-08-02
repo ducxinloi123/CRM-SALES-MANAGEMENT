@@ -178,4 +178,47 @@ return redirect()
             'user' => $user,
         ]);
     }
+    public function update(Request $request, User $user){
+                $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            Rule::unique('users', 'email'),
+            'password' => [ 'nullable', 'string', 'min:6'],
+            'birthday' => ['date', 'nullable'],
+            'sex' => ['required'],
+            'part' => ['integer', 'nullable', 'exists:parts,id'],
+            'position' => ['integer', 'nullable', 'exists:positions,id'],
+            'type_work' => ['required'],
+            'team' => ['integer', 'nullable', 'exists:teams,id'],
+            'phone' => ['required', 'string', 'max:255'],
+            'address' => ['required', 'nullable', 'string', 'max:255'],
+            'status' => ['required'],
+            'type_account' => ['required','exists:type_accounts,id'],
+            'start_day' => [ 'nullable', 'date'],
+            'end_day' => ['nullable', 'date', 'after_or_equal:start_day'],
+
+        ], [
+            'name.required' => 'Họ tên bắt buộc phải nhập',
+            'email.required' => 'Email bắt buộc phải nhập',
+            'email.email' => 'Email không đúng định dạng',
+            'email.unique' => 'Email đã tồn tại',
+            'sex.required' => 'Bạn phải chọn giới tính',
+            'status.required' => 'Trạng thái là bắt buộc chọn',
+            'type_work.required' => 'Hình thức là bắt buộc chọn',
+            'phone.required' => 'Số điện thoại bắt buộc phải nhập',
+            'address.required' => 'Địa chỉ bắt buộc phải nhập',
+            'type_account.required' => 'Loại tài khoản bắt buộc phải nhập',
+
+        ]);
+        $dataupdate = $validated;
+        unset($dataupdate['password']);
+        if(!empty($dataupdate['password'])){
+            $dataupdate['password'] = Hash::make($validated['password']);
+        }
+        $user -> update();
+        return redirect()
+    ->route('users.list')
+    ->with('success', 'Chỉnh sửa tài khoản thành công');
+    
+    }
 }

@@ -41,7 +41,7 @@
 
     <div class="col-md-4">
         <label for="">Ngày Bắt Đầu</label>
-        <input type="date" name="start_day" class="form-control"
+        <input type="datetime" name="start_day" class="form-control"
             value="{{ old('start_day', $user->start_day ?? '') }}">
 
         @error('start_day')
@@ -51,7 +51,7 @@
 
     <div class="col-md-4">
         <label for="">Ngày Kết Thúc</label>
-        <input type="date" name="end_day" class="form-control"
+        <input type="datetime" name="end_day" class="form-control"
             value="{{ old('end_day', $user->end_day ?? '') }}">
 
         @error('end_day')
