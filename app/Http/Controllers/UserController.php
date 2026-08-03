@@ -79,7 +79,7 @@ class UserController extends Controller
                     <form action="' . route('users.delete', $row->id) . '" method="POST">
                      ' . csrf_field() . '
                      ' . method_field('DELETE') . '
-                 <button class="btn btn-danger btn-delete">
+                 <button type="button" class="btn btn-danger btn-delete">
                  <i class="fa-solid fa-delete-left"></i>
                  </button>
                 </form>';

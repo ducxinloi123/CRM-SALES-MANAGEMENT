@@ -1,13 +1,19 @@
-@include('layouts/parts/header')   
-@include('layouts/parts/sidebar')  
+@include('layouts/parts/header')
+@include('layouts/parts/sidebar')
 
 <div class="container-fluid mt-5">
-<div class="card-header d-flex justify-content-between align-items-center">
-    <h2 class="mb-4">Danh sách tài khoản</h2>
-    <a href="{{ route('users.create') }}" class="btn btn-success ms-auto" style="margin-right: 10px;" id="btn open-create">Thêm mới nhân sự</a>
-    <button type="button" class="btn btn-primary" id="btn-export-excel">Xuất Excel</button>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-4">Danh sách tài khoản</h2>
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+        <a href="{{ route('users.create') }}" class="btn btn-success ms-auto" style="margin-right: 10px;"
+            id="btn open-create">Thêm mới nhân sự</a>
+        <button type="button" class="btn btn-primary" id="btn-export-excel">Xuất Excel</button>
 
-</div>
+    </div>
     <div class="table-responsive">
         <table class="table table-bordered table-striped text-nowrap" id="users-table">
             <thead>
@@ -39,13 +45,13 @@
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
 <script type="text/javascript">
-$(document).ready(function () {
-   
-    let table = $('#users-table').DataTable({
-        processing: true,
-        serverSide: true,
-        responsive: true,
-        dom: `
+    $(document).ready(function () {
+
+        let table = $('#users-table').DataTable({
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            dom: `
         <'row mb-3 align-items-center'
             <'col-md-2' l>
             <'col-md-10 d-flex justify-content-end align-items-center flex-wrap'
@@ -59,11 +65,11 @@ $(document).ready(function () {
             <'col-md-auto me-auto d-md-flex justify-content-between align-items-center dt-layout-end' p>
         >
         `,
-        initComplete: function () {
-            const $toolbar = $('.dt-toolbar', this.api().table().container());
+            initComplete: function () {
+                const $toolbar = $('.dt-toolbar', this.api().table().container());
 
-            if(!$toolbar.children().length){
-                $toolbar.html(`
+                if (!$toolbar.children().length) {
+                    $toolbar.html(`
                     <select id="filter-status" class="form-select form-select-sm ms-2" style="width: 130px;">
                         <option value="">Trạng thái</option>
                     </select>
@@ -78,87 +84,102 @@ $(document).ready(function () {
                     </select>
                     <button id="btn-clear-filter" class="btn btn-dark btn-sm ms-2">Xóa lọc</button>
                 `);
+                }
+
+                $.getJSON("{{ route('users.filter') }}").done(res => {
+                    if (res.status_f) {
+                        res.status_f.forEach(item => {
+                            $('#filter-status').append(new Option(item.text, item.id));
+                        });
+                    }
+
+                    if (res.part_f) {
+                        res.part_f.forEach(item => {
+                            $('#filter-part').append(new Option(item.text, item.id));
+                        });
+                    }
+
+                    if (res.team_f) {
+                        res.team_f.forEach(item => {
+                            $('#filter-team').append(new Option(item.text, item.id));
+                        });
+                    }
+
+                    if (res.role_f) {
+                        res.role_f.forEach(item => {
+                            $('#filter-account').append(new Option(item.text, item.id));
+                        });
+                    }
+                });
+
+            },
+            ajax: {
+                url: "{{ route('users.data') }}",
+                data: function (d) {
+                    d.part_id = $('#filter-part').val() || '';
+                    d.team_id = $('#filter-team').val() || '';
+                    d.status = $('#filter-status').val() || '';
+                    d.type_account_id = $('#filter-account').val() || '';
+                }
+
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'name', name: 'name' },
+                { data: 'email', name: 'email' },
+                { data: 'birthday', name: 'birthday' },
+                { data: 'sex', name: 'sex' },
+                { data: 'part_name', name: 'part.name' },
+                { data: 'position_name', name: 'position.name' },
+                { data: 'team_name', name: 'team.name' },
+                { data: 'phone', name: 'phone' },
+                { data: 'address', name: 'address' },
+                { data: 'status', name: 'status' },
+                { data: 'start_day', name: 'start_day' },
+                { data: 'end_day', name: 'end_day' },
+                { data: 'type_account_name', name: 'typeAccount.name' },
+                { data: 'action', name: 'action', orderable: false, searchable: false },
+            ],
+            language: {
+                info: 'Hiển Thị _PAGE_ of _PAGES_ trang',
+                infoEmpty: 'Không có dữ liệu',
+                infoFiltered: '(filtered from _MAX_ total records)',
+                search: "Tìm Kiếm:",
+                lengthMenu: 'Hiển thị _MENU_ user mỗi trang',
             }
+        });
 
-            $.getJSON("{{ route('users.filter') }}").done(res => {
-                if(res.status_f) {
-                    res.status_f.forEach(item => {
-                        $('#filter-status').append(new Option(item.text, item.id));
-                    });
-                }
-                
-                if(res.part_f) {
-                    res.part_f.forEach(item => {
-                        $('#filter-part').append(new Option(item.text, item.id));
-                    });
-                }
+        // Sự kiện khi thay đổi các thẻ Select
+        $(document).on('change', '#filter-account, #filter-part, #filter-status, #filter-team', function () {
+            table.ajax.reload(null, false);
+        });
 
-                if(res.team_f) {
-                    res.team_f.forEach(item => {
-                        $('#filter-team').append(new Option(item.text, item.id));
-                    });
-                }
+        // Sự kiện khi bấm nút Xóa lọc
+        $(document).on('click', '#btn-clear-filter', function () {
+            $('#filter-status').val('');
+            $('#filter-part').val('');
+            $('#filter-team').val('');
+            $('#filter-account').val('');
 
-                if(res.role_f) {
-                    res.role_f.forEach(item => {
-                        $('#filter-account').append(new Option(item.text, item.id));
-                    });
-                }
-            });
-           
-        },
-        ajax:{
-            url:  "{{ route('users.data') }}",
-            data: function (d){
-                d.part_id = $('#filter-part').val()|| '';
-                d.team_id = $('#filter-team').val()|| '';
-                d.status = $('#filter-status').val()|| '';
-                d.type_account_id = $('#filter-account').val() || '';
-            }
-           
-        },
-        columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-            {data: 'name', name: 'name'},
-            {data: 'email', name: 'email'},
-            {data: 'birthday', name: 'birthday'},
-            {data: 'sex', name: 'sex'},
-            {data: 'part_name', name: 'part.name'},
-            {data: 'position_name', name: 'position.name'},
-            {data: 'team_name', name: 'team.name'},
-            {data: 'phone', name: 'phone'},
-            {data: 'address', name: 'address'},
-            {data: 'status', name: 'status'},
-            {data: 'start_day', name: 'start_day'},
-            {data: 'end_day', name: 'end_day'},
-            {data: 'type_account_name', name: 'typeAccount.name'},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
-        ],
-        language: {
-            info: 'Hiển Thị _PAGE_ of _PAGES_ trang',
-            infoEmpty: 'Không có dữ liệu',
-            infoFiltered: '(filtered from _MAX_ total records)',
-            search: "Tìm Kiếm:", 
-            lengthMenu: 'Hiển thị _MENU_ user mỗi trang',
-        }
-    });
-    
-    // Sự kiện khi thay đổi các thẻ Select
-    $(document).on('change', '#filter-account, #filter-part, #filter-status, #filter-team', function() {
-        table.ajax.reload(null, false);
+            table.ajax.reload();
+        });
+
     });
 
-    // Sự kiện khi bấm nút Xóa lọc
-    $(document).on('click', '#btn-clear-filter', function() {
-        $('#filter-status').val('');
-        $('#filter-part').val('');
-        $('#filter-team').val('');
-        $('#filter-account').val('');
-        
-        table.ajax.reload();
-    });
-    
-});
+    $(document).on('click','button.btn.btn-danger.btn-delete', function () {
+        const $form = $(this).closest('form')
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn xóa hong",
+            icon: "question",
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy",
+            showCancelButton: true,
+            showCloseButton: true
+        }).then((result) => {
+            if(!result.isConfirmed) return;
+            $form.submit();
+        });
+    })
 </script>
 
 @include('layouts/parts/footer')
